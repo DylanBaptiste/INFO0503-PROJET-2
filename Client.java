@@ -2,6 +2,7 @@ package com.test;
 
 import java.util.*;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -14,14 +15,34 @@ import java.net.UnknownHostException;
 
 public class Client {
 
-	private String login;
-	private DatagramSocket socket = null;
-	public static int portEcoute = 2025;
+	public final int portEcoute = 2025;
 	public final int TIME_OUT_DELAY = 1000;
+	public final int AMOUNT_TO_SEND_GPSDATA = 5;
 
-	public String getLogin() { return login; }
-	public void setLogin(String login) { this.login = login; }
-	public void deconnexion(){ this.login = ""; }
+	private String login;
+	private String activity;
+	private DatagramSocket socket = null;
+	private List<GPSdata> GPSdataList = new ArrayList<GPSdata>();
+
+	public String getLogin() {
+		return login;
+	}
+
+	public void setLogin(String login) {
+		this.login = login;
+	}
+
+	public void deconnexion() {
+		this.login = "";
+	}
+
+	private void setActivity(String a) {
+		this.activity = a;
+	}
+
+	private void clearActivity() {
+		this.activity = "";
+	}
 
 	public Client() {
 		try {
@@ -39,10 +60,7 @@ public class Client {
 		System.out.print("mot de passe: ");
 		String RecupPassword = saisieUtilisateur.nextLine();
 
-		JSONObject data = new JSONObject()
-			.put("action", 1)
-			.put("login", RecupLogin)
-			.put("password", RecupPassword);
+		JSONObject data = new JSONObject().put("action", 1).put("login", RecupLogin).put("password", RecupPassword);
 
 		try {
 			return sendUDPWithResponse(data.toString());
@@ -61,11 +79,8 @@ public class Client {
 		System.out.print("passwordConfirm");
 		String passwordConfirm = saisieUtilisateur.nextLine();
 
-		JSONObject data = new JSONObject()
-			.put("action", 2)
-			.put("login", login)
-			.put("password", password)
-			.put("passwordConfirm", passwordConfirm);
+		JSONObject data = new JSONObject().put("action", 2).put("login", login).put("password", password)
+				.put("passwordConfirm", passwordConfirm);
 
 		try {
 			return sendUDPWithResponse(data.toString());
@@ -75,16 +90,16 @@ public class Client {
 
 	}
 
-	//Là je throws une exception car si il y a un probleme je veux pas juste afficher l'erreur comme dans seConnecter ou creerCompte
+	// Là je throws une exception car si il y a un probleme je veux pas juste
+	// afficher l'erreur comme dans seConnecter ou creerCompte
 	public String startActivity(Scanner saisieUtilisateur) throws Exception {
 
 		System.out.print("Activité: ");
 		String activity = saisieUtilisateur.nextLine();
 
-		JSONObject data = new JSONObject()
-			.put("action", 3)
-			.put("login", this.login)
-			.put("activity", activity);
+		this.setActivity(activity);
+
+		JSONObject data = new JSONObject().put("action", 3).put("login", this.login).put("activity", this.activity);
 
 		try {
 			return sendUDPWithResponse(data.toString());
@@ -93,22 +108,58 @@ public class Client {
 		}
 	}
 
-	public void sendGPSdata(Scanner saisieUtilisateur) {
+	public String closeActivity() throws Exception {
 
-		/* TODO faire mieux */
-		System.out.print("coord: ");
-		String coord = saisieUtilisateur.nextLine();
+		if (this.GPSdataList.size() > 0) {
+			try {
+				this.sendGPSdata();
+			} catch (Exception e) {
+				throw new Exception("Impossible d'envoyer les "+this.GPSdataList.size()+" dernières données GPS avant de fermer l'activité.");
+			}
+		}
 
-		JSONObject data = new JSONObject()
-			.put("action", 4)
-			.put("login", this.login)
-			.put("coord", coord);
+		JSONObject data = new JSONObject().put("action", 6).put("login", this.login);
 
 		try {
-			sendUDP(data.toString());
+			String res = sendUDPWithResponse(data.toString());
+			this.clearActivity();
+			return res;
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new Exception("Impossible de fermer l'activité: " + e.getMessage());
 		}
+	}
+
+	public void sendGPSdata() throws Exception {
+		JSONObject data = new JSONObject().put("action", 5).put("login", this.login).put("GPSdata",
+				new JSONArray(this.GPSdataList));
+
+		try {
+			this.sendUDPWithResponse(data.toString());
+			this.GPSdataList.clear();
+		} catch (Exception e) {
+			throw new Exception("Impossible d'envoyer les " + this.GPSdataList.size() + " dernieres données GPS.");
+		}
+
+	}
+
+	public void saveGPSdata(Scanner saisieUtilisateur) {
+
+		System.out.print("Latitude: ");
+		float latitude = saisieUtilisateur.nextFloat();
+		System.out.print("Longitude: ");
+		float longitude = saisieUtilisateur.nextFloat();
+
+		this.GPSdataList.add(new GPSdata(latitude, longitude));
+
+		// tout les 5 nouveaux ajouts on tente d'envoyer
+		if (this.GPSdataList.size() % AMOUNT_TO_SEND_GPSDATA == 0) {
+			try {
+				this.sendGPSdata();
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+		}
+		
 	}
 	
 	/**

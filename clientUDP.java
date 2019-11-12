@@ -33,11 +33,13 @@ public class clientUDP {
 						System.out.println(client.startActivity(saisieUtilisateur));
 						
 						while(true){
-							System.out.println("Envoyer les données GPS (y/n)");
+							System.out.println("Données GPS (y/n)");
 							if(!saisieUtilisateur.nextLine().equals("n")){
-								client.sendGPSdata(saisieUtilisateur);
+								client.saveGPSdata(saisieUtilisateur);
 							}else{
 								//demander au serveur la fermeture de l'activité ?
+								//client.sendGPSdata(); -> je le fait dans le closeActivity
+								client.closeActivity();
 								break;
 							}
 							
