@@ -1,4 +1,5 @@
-package com.test;
+package ClientUDP;
+
 
 import java.util.Calendar;
 
@@ -35,4 +36,3 @@ public class GPSdata {
 	}
 
 }
-

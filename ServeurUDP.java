@@ -8,10 +8,10 @@ import java.io.IOException;
 
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
-import java.net.Socket;
+
 import java.net.SocketException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+
+
 import java.util.Calendar;
 import java.util.Scanner;
 
@@ -32,11 +32,11 @@ public class ServeurUDP {
     public static  DatagramSocket socket = null;
 
     public static void main(String[] args) {
-        System.out.println("socket:" + socket);
+       
         // Création de la socket
         try {
             socket = new DatagramSocket(portEcoute);
-            System.out.println("socket:" + socket);
+            
 
         } catch(SocketException e) {
             System.err.println("Erreur lors de la création de la socket : " + e);
@@ -49,14 +49,13 @@ public class ServeurUDP {
 
 
         // Lecture du message du client
+       
         System.out.println("En attente d'un message sur le port " + portEcoute);
-
 
         while(true){
             try {
                 socket.receive(packet);
-                System.out.println("socket apres le receive:" + socket);
-               System.out.println(packet.toString());
+
                 JSONObject json = new JSONObject(new String(packet.getData(), 0, packet.getLength()));
 
                   if( json.has("action") ){
@@ -65,7 +64,7 @@ public class ServeurUDP {
                               login(json,packet, socket);
                           break;
                           case 2:
-                              System.out.println(json.toString());
+                              
                               creerCompte(json,packet, socket);
                           break;
                           case 3:
@@ -91,11 +90,11 @@ public class ServeurUDP {
 
     }
 
-    public static void test(){System.out.println("test");}
+   
 
     // Message en cas d'erreur
 private static void sendError(String errorMessage, DatagramPacket msg, DatagramSocket socket) throws JSONException, IOException{
-    System.out.println("socket:" + socket);
+   
             SendReponse(msg,new JSONObject().put("error", errorMessage).toString(), socket);
         }
 
@@ -152,12 +151,13 @@ protected static void creerActivite(JSONObject json , DatagramPacket msg, Datagr
     File fichier = new File("activity/"+loginU+"/"+activityU+".json");
     if(!fichier.exists()){
         fichier.createNewFile();
+        sendSuccessCreate("Création d'activite reussi", loginU, msg, socket);
     }else{
         sendError("L'activite "+activityU+" existe deja", msg, socket);
         System.out.println("Un utilisateur à tenté de créé une activite mais a échoué:        "+activityU+": "+json.toString());
         return;
     }
-
+    /*
     try{
         FileWriter ecritureFichier = new FileWriter(fichier.getAbsoluteFile());
         ecritureFichier.write(json.toString());
@@ -170,7 +170,7 @@ protected static void creerActivite(JSONObject json , DatagramPacket msg, Datagr
         sendError("Une erreur interne au serveur d'autentification est survenu", msg, socket);
         System.out.println("Erreur d'écriture est survenu !\n"+loginU+": "+json.toString()+"\n"+e);
         return;
-    }
+    }*/
 
     
     
@@ -270,7 +270,7 @@ protected static void creerCompte(JSONObject msg , DatagramPacket packet, Datagr
     // TODO Auto-generated method stub
     String loginU     = "";
     String passwordU = "";
-    String confirmPasswordU = "";
+    String passwordConfirmU = "";
 
     JSONObject jsonQuerry  = null;
     try{
@@ -299,15 +299,15 @@ protected static void creerCompte(JSONObject msg , DatagramPacket packet, Datagr
         return;
     }
 
-    if( jsonQuerry.has("confirmPassword") ){
-        confirmPasswordU = jsonQuerry.getString("confirmPassword");
+    if( jsonQuerry.has("passwordConfirm") ){
+    	passwordConfirmU = jsonQuerry.getString("passwordConfirm");
     }
     else{
         sendError("Aucun mot de passe de confirmation envoyé", packet, socket);
         return;
     }
 
-    if( !(passwordU.equals(confirmPasswordU)) ){
+    if( !(passwordU.equals(passwordConfirmU)) ){
         sendError("Le mot de passe et mot de passe de confirmation ne sont pas les mêmes.", packet, socket);
         return;
     }
@@ -353,9 +353,8 @@ protected static void creerCompte(JSONObject msg , DatagramPacket packet, Datagr
 
 public static void SendReponse(DatagramPacket msg,String data, DatagramSocket socket) throws IOException {
 
-        System.out.println(msg.toString());
-         System.out.println("msg.getAddress():" + msg.getAddress());
-         System.out.println("msg.getPort():" + msg.getPort());
+	System.out.println("msg.getAddress():" + msg.getAddress());
+    System.out.println("msg.getPort():" + msg.getPort());
 
         byte[] tampon = data.getBytes();
         DatagramPacket packetreponse = new DatagramPacket(
@@ -369,8 +368,7 @@ public static void SendReponse(DatagramPacket msg,String data, DatagramSocket so
                              msg.getPort()     //Le port de l'émetteur
 
         );
-        System.out.println("socket:" + socket);
-        System.out.println("packetreponse: " + packetreponse);
+        
         socket.send(packetreponse);
         packetreponse.setLength(tampon.length);
 }

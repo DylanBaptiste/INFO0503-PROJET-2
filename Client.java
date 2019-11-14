@@ -1,4 +1,5 @@
-package com.test;
+package ClientUDP;
+
 
 import java.util.*;
 
@@ -15,7 +16,7 @@ import java.net.UnknownHostException;
 
 public class Client {
 
-	public final int portEcoute = 2025;
+	public final int portEcoute = 2345;
 	public final int TIME_OUT_DELAY = 1000;
 	public final int AMOUNT_TO_SEND_GPSDATA = 5;
 
@@ -222,7 +223,7 @@ public class Client {
 			throw new Exception("La fonction sendUDP à échoué dans sendUDPWithResponse: " + e.getMessage());
 		}
 		
-        byte[] tampon = new byte[4];
+        byte[] tampon = new byte[800];
         DatagramPacket response = new DatagramPacket(tampon, tampon.length);
         try {
 			this.socket.setSoTimeout(TIME_OUT_DELAY);
@@ -252,4 +253,3 @@ public class Client {
 	
 
 }
-
