@@ -32,8 +32,9 @@ public class clientUDP {
 	public static void main(String[] args) {
 
 		Scanner saisieUtilisateur = new Scanner(System.in);
-
+		
 		Client client = new Client();
+		
 		int recupOption = 0;
 		String resultRequest = "";
 		do {
@@ -44,8 +45,9 @@ public class clientUDP {
 
 			switch (recupOption) {
 				case 1:
+				{
 					resultRequest = client.seConnecter(saisieUtilisateur);
-					
+					System.out.println("le resultat recu :"+ resultRequest);
 					try{
 						JSONObject jsonRequest = new JSONObject(resultRequest);
 						client.setLogin(getKey(jsonRequest, "id"));
@@ -56,12 +58,13 @@ public class clientUDP {
 					resultRequest = manageResult(resultRequest);
 					
 					break;
-				
+				}
 					
 					
 					
 
 				case 2: 
+				{
 					resultRequest = client.creerCompte(saisieUtilisateur);
 					try{
 						JSONObject jsonRequest = new JSONObject(resultRequest);
@@ -73,25 +76,21 @@ public class clientUDP {
 					resultRequest = manageResult(resultRequest);
 					
 					break;
-
+				}
 				case 3:
 					try {
-						//System.out.println(client.startActivity(saisieUtilisateur));
+						System.out.println(client.startActivity(saisieUtilisateur));
 						
-						int input = 0;
 						while(true){
-							/*System.out.println("Données GPS (y/n): ");
-							input = Integer.parseInt(saisieUtilisateur.nextLine());*/
-							client.saveGPSdata(saisieUtilisateur);
-							/*if(input == 1){
+							System.out.println("Données GPS (y/n)");
+							if(!saisieUtilisateur.nextLine().equals("n")){
 								client.saveGPSdata(saisieUtilisateur);
 							}else{
 								//demander au serveur la fermeture de l'activité ?
 								//client.sendGPSdata(); -> je le fait dans le closeActivity
-								System.out.println("close");
 								client.closeActivity();
 								break;
-							}*/
+							}
 							
 						}
 
@@ -102,7 +101,9 @@ public class clientUDP {
 					break;
 				
 				
-				case 8: System.out.println("Salut mon pote."); break;
+				case 8: 
+				System.out.println("Salut mon pote.");
+				client.aurevoir();break;
 				case 9: client.deconnexion(); break;
 				default: System.out.println("Cette action n'existe pas."); break;
         	}

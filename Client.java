@@ -77,7 +77,7 @@ public class Client {
 		String login = saisieUtilisateur.nextLine();
 		System.out.print("password: ");
 		String password = saisieUtilisateur.nextLine();
-		System.out.print("passwordConfirm");
+		System.out.print("passwordConfirm: ");
 		String passwordConfirm = saisieUtilisateur.nextLine();
 
 		JSONObject data = new JSONObject().put("action", 2).put("login", login).put("password", password)
@@ -152,28 +152,6 @@ public class Client {
 
 		this.GPSdataList.add(new GPSdata(latitude, longitude));
 
-
-		JSONArray json = new JSONArray();
-		for (GPSdata element : GPSdataList) {
-			json.put(element.toJSON());
-		}
-		System.out.println("\ntoJSON de la List: ");
-		System.out.println(json.toString());
-
-		
-		List<GPSdata> newList = new ArrayList<GPSdata>();
-		for (Object element : json) {
-			newList.add(new GPSdata( (JSONObject)element ) );
-		}
-		System.out.println("\nnew List généré par la deserealisation: ");
-		for (GPSdata element : newList) {
-			System.out.println(element.toString());
-		}
-
-		System.out.println();
-		
-
-	
 		// tout les 5 nouveaux ajouts on tente d'envoyer
 		if (this.GPSdataList.size() % AMOUNT_TO_SEND_GPSDATA == 0) {
 			try {
@@ -249,6 +227,65 @@ public class Client {
 		System.out.print( this.login == "" ?  "\n| (9) Se déconnecter" : "");
 		System.out.print("\n----======= **** =======-----\n\n");
 
+	}
+	
+	
+	public void aurevoir() {
+
+		System.out.println(
+				"-~~~~~.....~~~-~~~......^^._=*i;;++::::~.~-;+====+i*eeo*=i=*o*i**e!eee!!ee!!!!!eoiiioooooooooooo****\n" + 
+				"-----~~~.~~~~~~~~~........;=i*i+++=:_:_~.~-;++=io*eeeeeoiii*o*i**eeee!???eee!!??*iiiioooooooooooo***\n" + 
+				"__-----~~~~~~~~~~~~~~~~~.-**oi=++==__:-~.~-;io*i*e***!*ooioooooo*o**iio!?!!!??%%eiiiiiooooooooooooo*\n" + 
+				"::___--------~~~~~~~~~~~~+!!oi=++;:__:~..~-;oo**!ee**ooooiiiii===;;___:=e%??!!??eoiiiiiiooooooooooo*\n" + 
+				";::____------~~~~~~~-~~~-o?eoo_:_-~-::~..~-=io**e!eo+:++;+;++:_--~~~--__;e!??!??!eoiiiiiioooooooooo*\n" + 
+				";;:::___-----~~~-------~:e!*o;-__---__...~-+=o**!eo;:____:::_~~~.~~~--__:+!ee!!!!eoiiiiioiioooooooo*\n" + 
+				";;;;;:::___--------_---~+!!=:__::_--__..~-_+i*ee!e+_~-~~~----~~...~~---__:o!*o*e!*iiiiiiiiioooooooo*\n" + 
+				";;++;;;;:::_::__:____-_-o!*::::;;:__:_..~;_-:oe*!i_~....~~-~~~.~~~~~---_::+!*o**!eoiiiiiiiioooooooo*\n" + 
+				":;;;++++;;;;;;;::::___-_oeo-:+++;::;:_..::__:o*o*+-..~.~~~~~~~~~~~~~--__::;i!*o*eeoiiiiiiooooooooo**\n" + 
+				":_::;++++++;+;;:::___-~:**;_+===++=;__.~+_;=i*i**:~..~~-----~~~~~-----__::;=****e*oiiiiiooooooooo***\n" + 
+				"___::::::_____------~~~+i++===++++;--:.:++ioioo!i_~~-~~---__-------_____::;=oe**oo*iiiiiioooooooo***\n" + 
+				"--____---~~~~~~~~.....~+oooi;:;;:;:_:;~==oeeoo*?i__-____-_____--_______:_:+=i*eeeooiiiiiioooooooo***\n" + 
+				"--------~~~~~~~~~.....-ioii+::::;;:::;_;ie!e*o*!i:____:::_:;::::_-_____:::;=i*!!eeoiiiiiioooooooo***\n" + 
+				"__------~~~~~~~~......_++;::__:;;::;:=io*!!!e*e*i::_::::::__:_-__-_--__::::+io!ee!o=iiiioiooooooo***\n" + 
+				"_------~~~~~~~...~~.^~-__:::_::;:_:;;=ooo**!eeeoi:_:___:______-----~-_:::::;+o*o*eiiiiiiiioooooooo*o\n" + 
+				"----~~~~~~~~~~...~~..~:;;;:__;;;:::;:;+io*=o*ee*=::;:___---------~--;+;:::::;i*oio=iiiiiiiiiiooooooo\n" + 
+				"-~~~~~~~.............-:++;:__;;:::_:;:;=oi+iio*o+:_::__-~----___;+=eeo=;___::=**oi=iiiiiiiiiiooooooo\n" + 
+				"~~~~~~~.......^^^....-;++:::_:::____;;+io+===o=i+:::_;:_:::__::+o!!*i++;:_:::=*e*+=iiiiiiiiiiioooooo\n" + 
+				"~~~~~~..^^..^^^^^^^^._;++:::___:__:;;=i*==i==++=+-::i*ee!!o+;;+ie?%?e*eo+:::;+=*i+====iiiiiiiioooooo\n" + 
+				"-~~~~~......^^^^^^^.~:+++;;____:;;;+=io==oii===oo_:;i*!$$$$!i++*e%%##$*=::::;;:=;=======iiiiiioooooo\n" + 
+				"~~~~.....^^.^^^^^^..~_+==+:__::;++==io+=ioiii==oe;+=*eoe%OOOe;:;*??!%i;___::::;+;========iiiiioooooo\n" + 
+				"~~~~.....^^^^^^^^^.^~:ioi;:__;;+==ioi__=iiiii=+=*+;i**%##!?Oe;-_+*e*i=;____:::;-:=========iiiiiooooo\n" + 
+				"~~~~......^^^^^^^~..-;i*o+;;;+=iio*=~._=ioooi=+=i+:;__=ioo**+---_o!!ei+:____:_:::=========iiiiiioooo\n" + 
+				"~~~~......^^^^^^~~~~_+*e*oiiiii*e*:..~:=iiii===+;+:__:+o*oo;:-~---:==+:_-___:_-_;=========iiiiiioooo\n" + 
+				"~~~~......^^^^^.-~~~:oeeee*****e;~^^.-:=ioi====+:::_-:=ii+__:~~----~~--___:::___+=========iiiiiiiooo\n" + 
+				"-~~~......^^^^^~-~~-+*ee!!eee!e:.....~:=oooiii=++;:___-----::-~-___---__::;:::o++=========iiiiiiiooo\n" + 
+				"-~~~...........--~~:i*ie!e**e!eo=+ii=oo****oii=++__:::____:=:_-_:;+;:::;;++:::====+==========iiiiooo\n" + 
+				"~~~~~........._-~~-+oo*ee***!!?%$O$$OOOOOOOOO$?e*;:+;;;;;+i*+_-_:;i=+;;++=;;;;====++========iiiiiooo\n" + 
+				"~~~~.......-+.;-~_;i*ee!!!e!!?%%$#####&&&&&&&@&&&$o=i++++=o*:-_-__++i=++=+;;;+====++========iiiioooo\n" + 
+				"~~~~......;e`:+-_;=oeeee!!ee?%%$$#&###&&&&&@@@@@@@%+==oiioi:-:__:::_;+==+;;;;+++=++++========iiiiiio\n" + 
+				"~~~~.....i$~ ;+_:+i****e!!e?%$$$O#&##&&&&@@@@@@@@@&++=o*i=;:;++++=:_:;++;;;;+=+++++++========iiiiiii\n" + 
+				"~~~~..~~e#*  :+_:=o****ee*!$O##OO#&&&&&&&@@@@@@@@@@o+==oo=+=ie!!e=;;;;;;;;;+=!+++++++++=======iiiiii\n" + 
+				"---~~.~e#O~  .=;+io******o%$$OOOOO&&&&&&&@@@@@@@@@@!===i*i==o*?!=;;;;+;:;++==O!+++++++========iiiiii\n" + 
+				"-__-~~*##e^   ;+=ioo***oio%$$$$$O#&&&&&&&@@@@@@@@@@O+iiii===ii=::::;+==+++=i_OO?=+++++========iiiiii\n" + 
+				"::_--e#&#o^   ^+=ioooooi_%###O$OO#&&&&&&&&@@@@@@@@@&o=oo*e*ii==;=o*i==i===i=^OOO$%eo=++=======iiiiii\n" + 
+				"::__e#&&#o.  `^.+==iii:~o$$$O#####&#&&&&&&@@@@@@@@@&$=i*ee*i=!$$%?=+=++++=i: $OO#OOO$?eoi======iiiii\n" + 
+				":::+#&&&Oo~``^~~..~~-~~-$$OO##&&##&#&&&&&&@@@@@@@@@&&!=ooii*i++===ioi=++=i=` $OO#######O$%!e*oiiiiii\n" + 
+				";;:+#&&&$*:^.~-__-^.~-~i#OOO#&&&&#&##&&&&&@@@@&@@@@@&&eioi=*!!*ooe*i++;+ii. `$OO##########OO$$%?eoii\n" + 
+				";+:=&&&&$*=~~-;;:::~.~-O######&&&&&##&&&&&@@&&&@@@@@&&#*ooi=ooo%%o;:::;=i-  ^OOO#####&&&######OO$$%?\n" + 
+				";;:e&&&&!e*;-:++::;;_~?&&######&&&&&#&&&&&&@&&&@@@@@&&&#*oo++;;==+;::;=i-   :OOO#####&&&&&&&&&####O$\n" + 
+				";:+O&&&&%!eo;+=;:_;;;!&&&&&###&&&&&&#&&&&&&&&&&@&&&&&&&&#eoo+;=iii=+++=~    =OOO#####&&&&&&&&&&&&&##\n" + 
+				";:e#&&&#$%?eo++=++++!&&&&&&####&&&&&##&&&&&&&&&&&&&&&&&&&$+*ooeeeee*o=.`    *#OOO####&&&&&&&&&&&&&&#\n" + 
+				";;?&&&&OOOO%*i=i=+o$&&&&&&&&##&&&&@@&##&&&&&&&&&&&&&&&&&##:~oe!?%??!;``    `!O##O####&&&&&&&&&&&&&&&\n" + 
+				";+O&&&&&&&&O%*i+;e#&&&&&&&&&&#&&&&@@&####&&&&&&&#####&&##&e^^;?O#OO$i      ^%O#######&&&&&&&&&&&&&&&\n" + 
+				"+o#&&&&&&###!!!?O&&&@@@&&@&&&&&&&&@@@&###&&&&&&&######&&#&$_`.!O&#$!e`     ~$#########&&&&&&&&&&&&&&\n" + 
+				"=!&&&&#&&&#&&&&&&&&&@@@&@@@&&&&&&@@@@&###&&&&&&&&&&&&&&&##!i`*!!e****+     _OO#####&&&&&&&&&&&&&&&&&\n" + 
+				"i%&&&&#&&&&&&&&&&&&@@@@&@@@@&&&&@@@@@&####&&&&&&&&&&&&&&##___?%eooo***^   `+OO####&&&&&&&&&&&&&&&&&&\n" + 
+				"i%#&&&&&&&&&&&&&&&@@@@@@@@@@&&&&@@@@@@&####&&&&&&&&&&&&&&#;~oe?!*oo**~-   ^iOO####&&&&&&&&&&&&&&&&&&\n" + 
+				"i!#&&&&&&&&&&&&&&&&@@&@@@@@@&&&&@@@@@@&&###&&&&&&&&&&&&&&#i~._;eeooo* ~`  ^oO#####&&&&&&&&&&&&&&&&&&\n" + 
+				"==!#&&&&&&&&&&&&&&&@&@&&&@&@@@@@@@@@@@@&####&&&&&&&&#&&&&#!^^~^;?eeee  . `^eO#####&&&&&&&&&&&&&&&&&&\n" + 
+				"");
+		
+		
 	}
 	
 
