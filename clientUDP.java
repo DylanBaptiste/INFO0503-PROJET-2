@@ -1,8 +1,33 @@
-package com.test;
+package ClientUDP;
+
 
 import java.util.Scanner;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class clientUDP {
+	private static String getKey(JSONObject json, String key){
+		return json.has(key) ? json.optString(key) : "";
+	}
+
+	private static String manageResult(String resultRequest){
+		try{
+			JSONObject jsonRequest = new JSONObject(resultRequest);
+			String success = getKey(jsonRequest, "success");
+			String error   = getKey(jsonRequest, "error");
+
+			if(success != ""){
+				resultRequest = "Succes: "+ success;
+			}else{
+				resultRequest = "Erreur: "+ error;
+			}
+		}catch(JSONException e){
+			resultRequest += "";
+		}
+		
+		return resultRequest;
+	}
 
 	public static void main(String[] args) {
 
@@ -10,22 +35,43 @@ public class clientUDP {
 
 		Client client = new Client();
 		int recupOption = 0;
-		String reponse = "";
+		String resultRequest = "";
 		do {
-			client.displayMenu(reponse);
-			reponse = "";
+			client.displayMenu(resultRequest);
+			resultRequest = "";
 			System.out.print("Votre choix: ");
 			recupOption = Integer.parseInt(saisieUtilisateur.nextLine());
 
 			switch (recupOption) {
 				case 1:
-					reponse = client.seConnecter(saisieUtilisateur);
-					//si success client.setLogin
+					resultRequest = client.seConnecter(saisieUtilisateur);
+					
+					try{
+						JSONObject jsonRequest = new JSONObject(resultRequest);
+						client.setLogin(getKey(jsonRequest, "id"));
+						
+					}
+					catch(Exception e){}
+
+					resultRequest = manageResult(resultRequest);
+					
 					break;
+				
+					
+					
+					
 
 				case 2: 
-					reponse = client.creerCompte(saisieUtilisateur);
-					//si success client.setLogin
+					resultRequest = client.creerCompte(saisieUtilisateur);
+					try{
+						JSONObject jsonRequest = new JSONObject(resultRequest);
+						client.setLogin(getKey(jsonRequest, "id"));
+						
+					}
+					catch(Exception e){}
+
+					resultRequest = manageResult(resultRequest);
+					
 					break;
 
 				case 3:
@@ -46,7 +92,7 @@ public class clientUDP {
 						}
 
 					} catch (Exception e) {
-						reponse = e.getMessage();
+						resultRequest = e.getMessage();
 					}
 					
 					break;
