@@ -151,6 +151,28 @@ public class Client {
 
 		this.GPSdataList.add(new GPSdata(latitude, longitude));
 
+
+		JSONArray json = new JSONArray();
+		for (GPSdata element : GPSdataList) {
+			json.put(element.toJSON());
+		}
+		System.out.println("\ntoJSON de la List: ");
+		System.out.println(json.toString());
+
+		
+		List<GPSdata> newList = new ArrayList<GPSdata>();
+		for (Object element : json) {
+			newList.add(new GPSdata( (JSONObject)element ) );
+		}
+		System.out.println("\nnew List généré par la deserealisation: ");
+		for (GPSdata element : newList) {
+			System.out.println(element.toString());
+		}
+
+		System.out.println();
+		
+
+	
 		// tout les 5 nouveaux ajouts on tente d'envoyer
 		if (this.GPSdataList.size() % AMOUNT_TO_SEND_GPSDATA == 0) {
 			try {
