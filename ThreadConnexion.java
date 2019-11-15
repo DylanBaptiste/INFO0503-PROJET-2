@@ -222,7 +222,7 @@ protected static void ReceptionActivite(JSONObject json) {
 		return;
 	}
 
-	JSONObject oldFile = null;
+	JSONObject oldFile = new JSONObject();
 	try{
 		oldFile = readActivity(loginU, activityU);
 	}catch(Exception e){
@@ -301,8 +301,9 @@ protected static void creerActivite(JSONObject jsonQuerry) {
 	//Ecriture
 	
 	JSONObject jsonEcriture = new JSONObject();
-	jsonEcriture.put("activity", activityU);
+	//jsonEcriture.put("activity", activityU);
 	jsonEcriture.put("creationDate", Calendar.getInstance().getTime().toString() );
+	jsonEcriture.put("GPSdata", new JSONArray() );
 	 File repertoire = new File("activity/"+loginU+"/");
 	
 	 repertoire.mkdirs();
@@ -310,11 +311,23 @@ protected static void creerActivite(JSONObject jsonQuerry) {
 	File fichier = new File("activity/"+loginU+"/"+activityU+".json");
 	if(!fichier.exists()){
 	    try{ fichier.createNewFile();}catch(Exception e){sendError("Impossible de creer votre activité");}
-	    sendSuccess("Création d'activite reussi", new JSONObject().put("login", loginU));
 	}else{
 	    sendError("L'activite "+activityU+" existe deja");
 	    System.out.println("Un utilisateur à tenté de créé une activite mais a échoué: "+activityU+": "+jsonEcriture.toString());
 	    return;
+	}
+
+	try{
+		FileWriter ecritureFichier = new FileWriter(fichier.getAbsoluteFile());
+		ecritureFichier.write(jsonEcriture.toString());
+		ecritureFichier.close();
+		sendSuccess("Création d'activite reussi", new JSONObject().put("login", loginU));
+		return;
+	}
+	catch(IOException e){
+		sendError("Une erreur interne au serveur d'autentification est survenu");
+		System.out.println("Erreur d'écriture est survenu !\n"+loginU+": "+jsonEcriture.toString()+"\n"+e);
+		return;
 	}
 
 

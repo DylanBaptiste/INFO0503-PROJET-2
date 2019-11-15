@@ -135,7 +135,7 @@ public class ClientTCP {
 			}
 		}
 
-		JSONObject data = new JSONObject().put("action", 6).put("login", this.login);
+		JSONObject data = new JSONObject().put("action", 5).put("login", this.login).put("activity", this.activity);;
 
 		try {
 			String res = sendTCPWithResponse(data.toString());
@@ -147,8 +147,13 @@ public class ClientTCP {
 	}
 
 	public void sendGPSdata() throws Exception {
-		JSONObject data = new JSONObject().put("action", 5).put("login", this.login).put("GPSdata",
-				new JSONArray(this.GPSdataList));
+
+		JSONArray jsonGPSdata = new JSONArray();
+		for (GPSdata element : this.GPSdataList) {
+			jsonGPSdata.put(element.toJSON());
+		}
+		System.out.println("jsonGPSdata: " + jsonGPSdata.toString());
+		JSONObject data = new JSONObject().put("action", 4).put("login", this.login).put("activity", this.activity).put("GPSdata", jsonGPSdata);
 
 		try {
 			this.sendTCPWithResponse(data.toString());
@@ -165,6 +170,8 @@ public class ClientTCP {
 		float latitude = saisieUtilisateur.nextFloat();
 		System.out.print("Longitude: ");
 		float longitude = saisieUtilisateur.nextFloat();
+
+		saisieUtilisateur.nextLine();
 
 		this.GPSdataList.add(new GPSdata(latitude, longitude));
 
@@ -241,9 +248,8 @@ public class ClientTCP {
 	
 	
 	public void aurevoir() {
-		String data = "{\"activity\":\"iojff\",\"action\":8,\"login\":\"toto\"}";
 		try {
-			sendTCP(data);
+			sendTCP(new JSONObject().put("action", 8).toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
