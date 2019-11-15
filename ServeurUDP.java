@@ -132,22 +132,30 @@ public class ServeurUDP {
             return;
         }
 
+        //recuperation du fichier
+        JSONObject newFile = null;
+        try{
+            newFile = readActivity(loginU, activityU);
+        }catch(Exception e){
+            sendError(e.getMessage(), msg, socket);
+            return;
+        }
+
         //Ecriture
-        JSONObject jsonEcriture = new JSONObject();
-        jsonEcriture.put("closeDate",  Calendar.getInstance().getTime().toString());
+        newFile.put("closeDate",  Calendar.getInstance().getTime().toString());
 
         File fichier = new File("activity/"+loginU+"/"+activityU+".json");
         if(fichier.exists()){
             try{
                 FileWriter ecritureFichier = new FileWriter(fichier.getAbsoluteFile());
-                ecritureFichier.write(jsonEcriture.toString());
+                ecritureFichier.write(newFile.toString());
                 ecritureFichier.close();
                 sendSuccess("Activité fermé", null, msg, socket );
                 return;
             }
             catch(IOException e){
-                sendError("Une erreur interne au serveur d'autentification est survenu", msg, socket);
-                System.out.println("Erreur d'écriture est survenu !\n"+loginU+": "+jsonEcriture.toString()+"\n"+e);
+                sendError("Une erreur interne au serveur est survenu", msg, socket);
+                System.out.println("Erreur d'écriture est survenu !\n"+loginU+": "+newFile.toString()+"\n"+e);
                 return;
             }
         }else{
@@ -197,6 +205,7 @@ public class ServeurUDP {
             oldFile = readActivity(loginU, activityU);
         }catch(Exception e){
             sendError(e.getMessage(), msg, socket);
+            return;
         }
         
         //anciennes + nouvelles GPSdata fusion 

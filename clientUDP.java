@@ -156,6 +156,8 @@ public class ClientUDP {
 		System.out.print("Longitude: ");
 		float longitude = saisieUtilisateur.nextFloat();
 
+		saisieUtilisateur.nextLine();
+
 		this.GPSdataList.add(new GPSdata(latitude, longitude));
 
 		// tout les 5 nouveaux ajouts on tente d'envoyer
@@ -223,7 +225,7 @@ public class ClientUDP {
 	
 	public void displayMenu(String r){
 
-		System.out.println("\n\n\n\n"+r);
+		System.out.println("\n\n\n"+r);
 		System.out.print("\n----======= MENU =======-----");
 		System.out.print( this.login.equals("") ?  "\n| (1) login" : "\n| Vous êtes connecté en tant que " +this.login);
 		System.out.print( this.login.equals("") ?  "\n| (2) Créer un compte" : "");

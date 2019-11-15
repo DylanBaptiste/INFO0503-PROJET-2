@@ -35,9 +35,7 @@ public class AppUDP {
 				case 2: 
 					reponse = client.creerCompte(saisieUtilisateur);
 					try{
-						String login = new JSONObject(reponse).getJSONObject("data").getString("login");
-						System.out.println(new JSONObject(reponse).getJSONObject("data").toString());
-						client.setLogin(login);
+						client.setLogin(new JSONObject(reponse).getJSONObject("data").getString("login"));
 					}
 					catch(Exception e){}
 					reponse = manageResult(reponse);
@@ -62,10 +60,12 @@ public class AppUDP {
 								if(input.equals("y")){
 									client.saveGPSdata(saisieUtilisateur);
 								}else{
-									client.closeActivity();
+									reponse = client.closeActivity();
+									reponse = manageResult(reponse);
 									break;
 								}
-								TimeUnit.SECONDS.sleep(3);
+								input = "";
+								TimeUnit.SECONDS.sleep(1);
 							}
 						}
 
