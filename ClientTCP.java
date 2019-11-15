@@ -22,7 +22,7 @@ public class ClientTCP {
 	public final int TIME_OUT_DELAY = 1000;
 	public final int AMOUNT_TO_SEND_GPSDATA = 5;
 
-	private String login;
+	private String login = "";
 	private String activity;
 	private Socket socket = null;
 	BufferedReader reader = null;
@@ -82,36 +82,12 @@ public class ClientTCP {
 		JSONObject data = new JSONObject().put("action", 1).put("login", RecupLogin).put("password", RecupPassword);
 
 		try {
-			return sendUDPWithResponse(data.toString());
+			return sendTCPWithResponse(data.toString());
 		} catch (Exception e) {
 			return e.getMessage();
 		}
 
 	}
-	/*public void test() {
-		
-	
-		
-		
-		String message = "{\"action\":\"1\",\"creationDate\":\"Thu Nov 14 11:45:26 CET 2019\"}";
-		writer.println(message);
-		//writer.flush();
-		
-		 String messageR = "";
-	        try {
-	            messageR = reader.readLine();
-	        } catch(IOException e) {
-	            System.err.println("Erreur lors de la lecture : " + e);
-	            
-	        }
-	    	//JSONObject json = new JSONObject(message);
-	        System.out.print(messageR);
-	        return;
-		
-		
-		
-		
-	}*/
 
 	public String creerCompte(Scanner saisieUtilisateur) {
 
@@ -126,15 +102,13 @@ public class ClientTCP {
 				.put("passwordConfirm", passwordConfirm);
 
 		try {
-			return sendUDPWithResponse(data.toString());
+			return sendTCPWithResponse(data.toString());
 		} catch (Exception e) {
 			return e.getMessage();
 		}
 
 	}
 
-	// Là je throws une exception car si il y a un probleme je veux pas juste
-	// afficher l'erreur comme dans seConnecter ou creerCompte
 	public String startActivity(Scanner saisieUtilisateur) throws Exception {
 
 		System.out.print("Activité: ");
@@ -145,7 +119,7 @@ public class ClientTCP {
 		JSONObject data = new JSONObject().put("action", 3).put("login", this.login).put("activity", this.activity);
 
 		try {
-			return sendUDPWithResponse(data.toString());
+			return sendTCPWithResponse(data.toString());
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
 		}
@@ -164,7 +138,7 @@ public class ClientTCP {
 		JSONObject data = new JSONObject().put("action", 6).put("login", this.login);
 
 		try {
-			String res = sendUDPWithResponse(data.toString());
+			String res = sendTCPWithResponse(data.toString());
 			this.clearActivity();
 			return res;
 		} catch (Exception e) {
@@ -177,7 +151,7 @@ public class ClientTCP {
 				new JSONArray(this.GPSdataList));
 
 		try {
-			this.sendUDPWithResponse(data.toString());
+			this.sendTCPWithResponse(data.toString());
 			this.GPSdataList.clear();
 		} catch (Exception e) {
 			throw new Exception("Impossible d'envoyer les " + this.GPSdataList.size() + " dernieres données GPS.");
@@ -194,7 +168,6 @@ public class ClientTCP {
 
 		this.GPSdataList.add(new GPSdata(latitude, longitude));
 
-		// tout les 5 nouveaux ajouts on tente d'envoyer
 		if (this.GPSdataList.size() % AMOUNT_TO_SEND_GPSDATA == 0) {
 			try {
 				this.sendGPSdata();
@@ -206,11 +179,11 @@ public class ClientTCP {
 	}
 	
 	/**
-	 * Envoie une request UDP
+	 * Envoie une request TCP
 	 * @param data le JSON stringifié
 	 * @throws Exception UnknownHostException ou IOException
 	 */
-	public void sendUDP(String data) throws Exception {
+	public void sendTCP(String data) throws Exception {
 		
 		System.out.print("\nEnvoie...");
         
@@ -225,19 +198,19 @@ public class ClientTCP {
 	}
 	
 	/**
-	 * Envoie une request UDP et attend une réponse
+	 * Envoie une request TCP et attend une réponse
 	 * @param data le JSON stringifié
 	 * @return le réponse du serveur
 	 * @throws Exception SocketTimeoutException ou IOException
 	 */
-	public String sendUDPWithResponse(String data) throws Exception{
+	public String sendTCPWithResponse(String data) throws Exception{
 		
 		
 		try{
-			sendUDP(data);
+			sendTCP(data);
 			
 		} catch(Exception e){
-			throw new Exception("La fonction sendUDP à échoué dans sendUDPWithResponse: " + e.getMessage());
+			throw new Exception("La fonction sendTCP à échoué dans sendTCPWithResponse: " + e.getMessage());
 		}
 	 
         String message = "";
@@ -254,25 +227,24 @@ public class ClientTCP {
 	
 	public void displayMenu(String r){
 
-		System.out.println("\n\n\n\n"+r);
-		
+		System.out.println("\n\n\n"+r);
 		System.out.print("\n----======= MENU =======-----");
-		System.out.print( this.login != "" ?  "\n| (1) login" : "\n| Vous êtes connecté en tant que " +this.login);
-		System.out.print( this.login != "" ?  "\n| (2) Créer un compte" : "");
-		System.out.print( this.login == "" ?  "\n| (3) Commencer une activité" : "");
+		System.out.print( this.login.equals("") ?  "\n| (1) login" : "\n| Vous êtes connecté en tant que " +this.login);
+		System.out.print( this.login.equals("") ?  "\n| (2) Créer un compte" : "");
+		System.out.print( this.login.equals("") ?  "" : "\n| (3) Commencer une activité");
 		System.out.print("\n| (8) quitter");  
-		System.out.print( this.login == "" ?  "\n| (9) Se déconnecter" : "");
+		System.out.print( this.login.equals("") ?  "" : "\n| (9) Se déconnecter");
 		System.out.print("\n----======= **** =======-----\n\n");
 
 	}
 	
 	
+	
 	public void aurevoir() {
 		String data = "{\"activity\":\"iojff\",\"action\":8,\"login\":\"toto\"}";
 		try {
-			sendUDP(data);
+			sendTCP(data);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		try {

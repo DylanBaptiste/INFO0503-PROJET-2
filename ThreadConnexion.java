@@ -15,7 +15,7 @@ import java.net.Socket;
 import java.util.Calendar;
 import java.util.Scanner;
 
-import org.json.JSONException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ThreadConnexion extends Thread {
@@ -44,53 +44,31 @@ public class ThreadConnexion extends Thread {
         try {
             message = reader.readLine();
         } catch(IOException e) {
-            System.err.println("Erreur lors de la lecture : " + e);
+			System.err.println("Erreur lors de la lecture : " + e);
+			sendError("Erreur lors de la lecture de la requete");
             System.exit(0);
-        }
-    	JSONObject json = new JSONObject(message);
+		}
+		JSONObject json = null;
+		try{
+			json = new JSONObject(message);
+		}catch(Exception e){
+			sendError("Les données envoyées ne sont pas au format json");
+
+		}
     	
-    	 if( json.has("action") ){
-             switch(json.getInt("action")){
-                 case 1:
-				try {
-					login(json);
-				} catch (JSONException | IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				
-                 break;
-                 case 2:		
-				try {
-					creerCompte(json);
-				} catch (JSONException | IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				
-                 break;
-                 case 3:
-				try {
-					creerActivite(json);
-				} catch (JSONException | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-                 break;
-                 case 4:
-                     ReceptionActivite(json);
-                 break;
-                 case 5:
-				try {
-					FinActivite(json);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-                 break;
-                 default: break;
-             }
-         }
+		if( json.has("action") ){
+			switch(json.getInt("action")){
+				case 1: login(json); break;
+				case 2:	creerCompte(json); break;
+				case 3: creerActivite(json); break;
+				case 4: ReceptionActivite(json); break;
+				case 5: FinActivite(json); break;
+				default: sendError("Cette action n'existe pas"); break;
+			}
+		}
+		 else{
+			sendError("Aucune action demandé");
+		}
     	
     	
 
@@ -105,30 +83,191 @@ public class ThreadConnexion extends Thread {
         }
     }
 
-private static void sendError(String errorMessage) throws JSONException, IOException{
-    	   
+/**
+     * * Renvoye au client une message d'erreur au format JSON: {"error": "errorMessage"}
+     * @param errorMessage
+     * @param packet
+     * @param socket
+     */
+    private static void sendError(String errorMessage){
         SendReponse(new JSONObject().put("error", errorMessage).toString());
     }
 
-protected static void FinActivite(JSONObject json) throws IOException {
-// TODO Auto-generated method stub
-	SendReponse("Fin de l'activite");
-}
+    /**
+     * Renvoye au client une message de reussite au format JSON: {"success": "successMessage", data: {...}}
+     * @param successMessage le message de reussite
+     * @param data des données à associées à la reponse
+     * @param packet
+     * @param socket
+     */
+    private static void sendSuccess(String successMessage, JSONObject data){		
+        SendReponse(new JSONObject().put("success", successMessage).put("data", data).toString());
+    }
 
-protected static void ReceptionActivite(JSONObject json) {
-// TODO Auto-generated method stub
+protected static void FinActivite(JSONObject json) {
+	String loginU = "";
+	String activityU = "";
 
-}
+	if( json.has("login") && !json.getString("login").equals("") ){
+		loginU = json.getString("login");
+		loginU.replaceAll("[%~/. ]", "");
+	}
+	else{
+		sendError("Vous n'etes pas connecté");
+		return;
+	}
 
-protected static void creerActivite(JSONObject json) throws JSONException, IOException {
-	// TODO Auto-generated method stub
-		JSONObject jsonQuerry  = null;
+	if( json.has("activity") ){ activityU = json.getString("activity"); }
+	else{
+		sendError("Aucune activité envoyé");
+		return;
+	}
+
+	//recuperation du fichier
+	JSONObject newFile = null;
+	try{
+		newFile = readActivity(loginU, activityU);
+	}catch(Exception e){
+		sendError(e.getMessage());
+		return;
+	}
+
+	//Ecriture
+	newFile.put("closeDate",  Calendar.getInstance().getTime().toString());
+
+	File fichier = new File("activity/"+loginU+"/"+activityU+".json");
+	if(fichier.exists()){
 		try{
-			jsonQuerry = json;
-		}catch(Exception e){
-			sendError("Les données envoyées ne sont pas au format json");
+			FileWriter ecritureFichier = new FileWriter(fichier.getAbsoluteFile());
+			ecritureFichier.write(newFile.toString());
+			ecritureFichier.close();
+			sendSuccess("Activité fermé", null);
 			return;
 		}
+		catch(IOException e){
+			sendError("Une erreur interne au serveur est survenu");
+			System.out.println("Erreur d'écriture est survenu !\n"+loginU+": "+newFile.toString()+"\n"+e);
+			return;
+		}
+	}else{
+		sendError("L'activite "+activityU+" n'existe pas");
+		
+		return;
+	}
+}
+
+private static JSONObject readActivity(String loginU, String activityU) throws Exception{
+	try  {
+		return new JSONObject( readFile("activity/"+loginU+"/"+activityU+".json") );
+	}
+	catch (FileNotFoundException e){
+		throw new Exception("L'activité "+activityU+" n'existe  pas.");
+	}
+}
+private static String readFile(String path) throws Exception{
+	FileInputStream fs = null;
+	String json = "";
+
+	File fichier = new File(path);
+	try  {
+		fs = new FileInputStream ( fichier.getAbsoluteFile() );
+		Scanner scanner = new Scanner ( fs );
+
+		while ( scanner.hasNext() )
+			json += scanner.nextLine();
+
+		scanner.close();
+		json = json.replaceAll("[\t\r\n ]", "");
+		fs.close();
+	}
+	catch (FileNotFoundException e){
+		throw e;
+	}
+
+	return json;
+}
+protected static void ReceptionActivite(JSONObject json) {
+	System.out.println("ReceptionActivite: " + json.toString());
+
+	String loginU = "";
+	String activityU = "";
+	JSONArray newGPSdatas = null;
+
+	if( json.has("login") && !json.getString("login").equals("") ){
+		loginU = json.getString("login");
+		loginU.replaceAll("[%~/. ]", "");
+	}
+	else{
+		sendError("Vous n'etes pas connecté");
+		return;
+	}
+
+	if( json.has("activity") ){ activityU = json.getString("activity"); }
+	else{
+		sendError("Aucune activité envoyé");
+		return;
+	}
+
+	if( json.has("GPSdata") ){ newGPSdatas = json.getJSONArray("GPSdata"); }
+	else{
+		sendError("Aucune données GPS envoyé");
+		return;
+	}
+
+	JSONObject oldFile = null;
+	try{
+		oldFile = readActivity(loginU, activityU);
+	}catch(Exception e){
+		sendError(e.getMessage());
+		return;
+	}
+	
+	//anciennes + nouvelles GPSdata fusion 
+	JSONArray oldGPSdatas = oldFile.getJSONArray("GPSdata");
+
+	for (Object object : newGPSdatas) {
+		oldGPSdatas.put(object);
+	}
+
+	/*List<GPSdata> newList = new ArrayList<GPSdata>();
+	for (Object element : oldGPSdatas) { newList.add(new GPSdata( (JSONObject)element ) ); }
+	for (Object element : newGPSdatas) { newList.add(new GPSdata( (JSONObject)element ) ); }
+
+	//nouvelle List -> JSONArray
+	JSONArray jsonGPSdata = new JSONArray();
+	for (GPSdata element : newList) {
+		jsonGPSdata.put(element.toJSON());
+	}*/
+   
+	//Ecriture
+	JSONObject jsonEcriture = new JSONObject();
+	jsonEcriture.put("creationDate", oldFile.getString("creationDate") );
+	jsonEcriture.put("GPSdata", oldGPSdatas );
+
+	File fichier = new File("activity/"+loginU+"/"+activityU+".json");
+	if(fichier.exists()){
+		try{
+			FileWriter ecritureFichier = new FileWriter(fichier.getAbsoluteFile());
+			ecritureFichier.write(jsonEcriture.toString());
+			ecritureFichier.close();
+			sendSuccess("Données sauvegardées", null);
+			return;
+		}
+		catch(IOException e){
+			sendError("Une erreur interne au serveur d'autentification est survenu");
+			System.out.println("Erreur d'écriture est survenu !\n"+loginU+": "+jsonEcriture.toString()+"\n"+e);
+			return;
+		}
+	}else{
+		sendError("L'activite "+activityU+" n'existe pas");
+		
+		return;
+	}
+
+}
+
+protected static void creerActivite(JSONObject jsonQuerry) {
+
 	//Recuperation des infos du json
 	String loginU     = "";
 	String activityU  = "";
@@ -162,45 +301,24 @@ protected static void creerActivite(JSONObject json) throws JSONException, IOExc
 	
 	File fichier = new File("activity/"+loginU+"/"+activityU+".json");
 	if(!fichier.exists()){
-	    fichier.createNewFile();
-	    sendSuccessCreate("Création d'activite reussi", loginU);
+	    try{ fichier.createNewFile();}catch(Exception e){sendError("Impossible de creer votre activité");}
+	    sendSuccess("Création d'activite reussi", new JSONObject().put("login", loginU));
 	}else{
 	    sendError("L'activite "+activityU+" existe deja");
-	    System.out.println("Un utilisateur à tenté de créé une activite mais a échoué:        "+activityU+": "+json.toString());
+	    System.out.println("Un utilisateur à tenté de créé une activite mais a échoué: "+activityU+": "+jsonEcriture.toString());
 	    return;
 	}
-	/*
-	try{
-	    FileWriter ecritureFichier = new FileWriter(fichier.getAbsoluteFile());
-	    ecritureFichier.write(json.toString());
-	    sendSuccessCreate("Création d'activite reussi", loginU, msg, socket);
-	    ecritureFichier.close();
-	    System.out.println("nouvel activité créé:        "+activityU+": "+json.toString());
-	    return;
-	}
-	catch(IOException e){
-	    sendError("Une erreur interne au serveur d'autentification est survenu", msg, socket);
-	    System.out.println("Erreur d'écriture est survenu !\n"+loginU+": "+json.toString()+"\n"+e);
-	    return;
-	}*/
 
 
 
 
 }
 
-public static void login(JSONObject json) throws JSONException, IOException {
-	// TODO Auto-generated method stub
+public static void login(JSONObject jsonQuerry) {
 	String loginU     = "";
 	String passwordU = "";
-	System.out.println(json.toString());
-	JSONObject jsonQuerry  = null;
-	try{
-	    jsonQuerry = json;
-	}catch(Exception e){
-	    sendError("Les données envoyées ne sont pas au format json");
-	    return;
-	}
+	System.out.println(jsonQuerry.toString());
+
 	
 	
 	
@@ -226,7 +344,7 @@ public static void login(JSONObject json) throws JSONException, IOException {
 	
 	JSONObject localJsonUser = null;
 	try{
-	    localJsonUser = readJson(loginU);
+	    localJsonUser = readUser(loginU);
 	}
 	catch(Exception e){
 	    sendError(e.toString());
@@ -236,7 +354,7 @@ public static void login(JSONObject json) throws JSONException, IOException {
 	
 	
 	if( passwordU.equals(localJsonUser.getString("password")) ){
-	    sendSuccessCreate("login reussi",loginU);
+	    sendSuccess("login reussi", new JSONObject().put("login", loginU));
 	}else{
 	    System.out.println(localJsonUser.getString("password"));
 	
@@ -247,50 +365,23 @@ public static void login(JSONObject json) throws JSONException, IOException {
 
 }
 
-//message En cas de succes
-private static void sendSuccessCreate(String successMessage, String id) throws JSONException, IOException{
- 		
-        SendReponse(new JSONObject().put("success", successMessage).put("id", id).toString());
 
-}
-
-private static JSONObject readJson(String loginU) throws Exception{
-	FileInputStream fs = null;
-	String json = "";
-	
-	File fichier = new File("users/"+loginU+".json");
+private static JSONObject readUser(String loginU) throws Exception{
 	try  {
-	    fs = new FileInputStream ( fichier.getAbsoluteFile() );
-	    Scanner scanner = new Scanner ( fs );
-	
-	    while ( scanner.hasNext() )
-	        json += scanner.nextLine();
-	
-	    scanner.close();
-	    json = json.replaceAll("[\t\r\n ]", "");
-	    fs.close();
+		return new JSONObject( readFile("users/"+loginU+".json") );
 	}
 	catch (FileNotFoundException e){
-	    throw new Exception("L'utilisateur "+loginU+" n'existe  pas.");
+		throw new Exception("L'utilisateur "+loginU+" n'existe  pas.");
 	}
+}
 	
-	return new JSONObject( json );
-	}
+	private static void creerCompte(JSONObject jsonQuerry) {
 	
-	protected static void creerCompte(JSONObject msg) throws JSONException, IOException {
-	
-	// TODO Auto-generated method stub
 	String loginU     = "";
 	String passwordU = "";
 	String passwordConfirmU = "";
 	
-	JSONObject jsonQuerry  = null;
-	try{
-	    jsonQuerry = msg;
-	}catch(Exception e){
-	    sendError("Les données envoyées ne sont pas au format json");
-	    return;
-	}
+
 	
 	// LoginU prend la valeur du login dans le json
 	if( jsonQuerry.has("login") ){
@@ -337,17 +428,17 @@ private static JSONObject readJson(String loginU) throws Exception{
 	
 	File fichier = new File("users/"+loginU+".json");
 	if(!fichier.exists()){
-	    fichier.createNewFile();
+	   try{ fichier.createNewFile();}catch(Exception e){sendError("Impossible de creer votre compte");}
 	}else{
 	    sendError("L'utilisateur "+loginU+" existe deja");
-	    System.out.println("Un utilisateur à tenté de créé un compte mais a échoué:        "+loginU+": "+json.toString());
+	    System.out.println("Un utilisateur à tenté de créé un compte mais a échoué: "+loginU+": "+json.toString());
 	    return;
 	}
 	
 	try{
 	    FileWriter ecritureFichier = new FileWriter(fichier.getAbsoluteFile());
 	    ecritureFichier.write(json.toString());
-	    sendSuccessCreate("Création de compte reussi", loginU);
+	    sendSuccess("Création de compte reussi", new JSONObject().put("login", loginU));
 	    ecritureFichier.close();
 	    System.out.println("Nouveau utilisateur créé:        "+loginU+": "+json.toString());
 	    return;
@@ -361,10 +452,7 @@ private static JSONObject readJson(String loginU) throws Exception{
 }
 
 
-
-
-
-	public static void SendReponse(String data) throws IOException {
+	public static void SendReponse(String data) {
 		writer.write(data);
 		writer.flush();
 	}

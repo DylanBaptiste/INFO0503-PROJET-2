@@ -1,8 +1,7 @@
 package com.test;
 
-
-
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,22 +11,22 @@ public class AppTCP {
 		return json.has(key) ? json.optString(key) : "";
 	}
 
-	private static String manageResult(String resultRequest){
+	private static String manageResult(String reponse){
 		try{
-			JSONObject jsonRequest = new JSONObject(resultRequest);
+			JSONObject jsonRequest = new JSONObject(reponse);
 			String success = getKey(jsonRequest, "success");
 			String error   = getKey(jsonRequest, "error");
 
 			if(success != ""){
-				resultRequest = "Succes: "+ success;
+				reponse = "Succes: "+ success;
 			}else{
-				resultRequest = "Erreur: "+ error;
+				reponse = "Erreur: "+ error;
 			}
 		}catch(JSONException e){
-			resultRequest += "";
+			reponse += "";
 		}
 		
-		return resultRequest;
+		return reponse;
 	}
 
 	public static void main(String[] args) {
@@ -37,88 +36,81 @@ public class AppTCP {
 		ClientTCP client = new ClientTCP();
 		
 		int recupOption = 0;
-		String resultRequest = "";
+		String reponse = "";
 		do {
-			client.displayMenu(resultRequest);
-			resultRequest = "";
+			client.displayMenu(reponse);
+			reponse = "";
 			System.out.print("Votre choix: ");
 			recupOption = Integer.parseInt(saisieUtilisateur.nextLine());
 
 			switch (recupOption) {
 				case 1:
-				{
-				resultRequest = client.seConnecter(saisieUtilisateur);
-					System.out.println("le resultat recu :"+ resultRequest);
+					reponse = client.seConnecter(saisieUtilisateur);
 					try{
-						JSONObject jsonRequest = new JSONObject(resultRequest);
-						client.setLogin(getKey(jsonRequest,"id"));
-						
+						client.setLogin(new JSONObject(reponse).getJSONObject("data").getString("login"));
 					}
 					catch(Exception e){}
-
-					resultRequest = manageResult(resultRequest);
-					
+					reponse = manageResult(reponse);
 					break;
-				}
 					
-					
-					
-
 				case 2: 
-				{
-					resultRequest = client.creerCompte(saisieUtilisateur);
+					reponse = client.creerCompte(saisieUtilisateur);
 					try{
-						JSONObject jsonRequest = new JSONObject(resultRequest);
-						client.setLogin(getKey(jsonRequest, "id"));
-						
+						client.setLogin(new JSONObject(reponse).getJSONObject("data").getString("login"));
 					}
 					catch(Exception e){}
-
-					resultRequest = manageResult(resultRequest);
-					
+					reponse = manageResult(reponse);
 					break;
-				}
+
 				case 3:
 					try {
-						System.out.println(client.startActivity(saisieUtilisateur));
+						boolean ok = false;
+						String res = client.startActivity(saisieUtilisateur);
+						System.out.println(manageResult(res));
+						try{
+							ok = new JSONObject(res).has("success");
+						}
+						catch(Exception e){}
 						
-						while(true){
-							System.out.println("Données GPS (y/n)");
-							if(!saisieUtilisateur.nextLine().equals("n")){
-								client.saveGPSdata(saisieUtilisateur);
-							}else{
-								//demander au serveur la fermeture de l'activité ?
-								//client.sendGPSdata(); -> je le fait dans le closeActivity
-								client.closeActivity();
-								break;
+						if(ok){
+							String input = "";
+							while(true){
+								System.out.print("Recolter mes données GPS (y/n): ");
+								input = saisieUtilisateur.nextLine();
+								
+								if(input.equals("y")){
+									client.saveGPSdata(saisieUtilisateur);
+								}else{
+									reponse = client.closeActivity();
+									reponse = manageResult(reponse);
+									break;
+								}
+								input = "";
+								TimeUnit.SECONDS.sleep(1);
 							}
-							
 						}
 
 					} catch (Exception e) {
-						resultRequest = e.getMessage();
+						reponse = e.getMessage();
 					}
 					
 					break;
 				
 				
 				case 8: 
-				System.out.println("Salut mon pote.");
-				client.aurevoir();
-				
-				break;
-				case 9: client.deconnexion(); 
-				break;
-				default: System.out.println("Cette action n'existe pas."); 
-				break;
+					System.out.println("Salut mon pote.");
+					client.aurevoir();
+					break;
+				case 9:
+					client.deconnexion(); 
+					break;
+				default:
+					System.out.println("Cette action n'existe pas."); 
+					break;
         	}
             
         }while(recupOption != 8);
        
-
-        
-
-        // Fermeture de la socket
         
     }
 

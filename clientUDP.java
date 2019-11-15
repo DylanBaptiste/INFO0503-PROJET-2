@@ -91,7 +91,7 @@ public class ClientUDP {
 
 	}
 
-	// Là je throws une exception car si il y a un probleme je veux pas juste
+	// throws une exception car si il y a un probleme je veux pas juste
 	// afficher l'erreur comme dans seConnecter ou creerCompte
 	public String startActivity(Scanner saisieUtilisateur) throws Exception {
 
@@ -160,7 +160,7 @@ public class ClientUDP {
 
 		this.GPSdataList.add(new GPSdata(latitude, longitude));
 
-		// tout les 5 nouveaux ajouts on tente d'envoyer
+		// tout les X nouveaux ajouts on tente d'envoyer
 		if (this.GPSdataList.size() % AMOUNT_TO_SEND_GPSDATA == 0) {
 			try {
 				this.sendGPSdata();

@@ -9,9 +9,7 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.SocketException;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Scanner;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -344,7 +342,7 @@ public class ServeurUDP {
 
         JSONObject localJsonUser = null;
         try{
-            localJsonUser = readJson(loginU);
+            localJsonUser = readUser(loginU);
         }
         catch(Exception e){
             sendError(e.toString(), packet, socket);
@@ -373,7 +371,7 @@ public class ServeurUDP {
     }
 
 
-    private static JSONObject readJson(String loginU) throws Exception{
+    private static JSONObject readUser(String loginU) throws Exception{
         try  {
             return new JSONObject( readFile("users/"+loginU+".json") );
         }
@@ -407,7 +405,6 @@ public class ServeurUDP {
 
     private static void creerCompte(JSONObject msg , DatagramPacket packet, DatagramSocket socket) throws JSONException, IOException {
 
-        // TODO Auto-generated method stub
         String loginU     = "";
         String passwordU = "";
         String passwordConfirmU = "";

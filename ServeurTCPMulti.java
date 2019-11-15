@@ -33,7 +33,7 @@ public class ServeurTCPMulti {
             }
         } catch(IOException e) {
             System.err.println("Erreur lors de l'attente d'une connexion : " + e);
-            System.exit(0);
+            
         }
     
         // Fermeture de la socket
