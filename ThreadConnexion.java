@@ -10,7 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Calendar;
 import java.util.Scanner;
@@ -39,48 +39,56 @@ public class ThreadConnexion extends Thread {
 
     @Override
     public void run() {
-    	
-    	String message = "";
-        try {
-            message = reader.readLine();
-        } catch(IOException e) {
-			System.err.println("Erreur lors de la lecture : " + e);
-			sendError("Erreur lors de la lecture de la requete");
-            System.exit(0);
-		}
-		JSONObject json = null;
-		try{
-			json = new JSONObject(message);
-		}catch(Exception e){
-			sendError("Les données envoyées ne sont pas au format json");
 
-		}
-    	
-		if( json.has("action") ){
-			switch(json.getInt("action")){
-				case 1: login(json); break;
-				case 2:	creerCompte(json); break;
-				case 3: creerActivite(json); break;
-				case 4: ReceptionActivite(json); break;
-				case 5: FinActivite(json); break;
-				default: sendError("Cette action n'existe pas"); break;
+		InetSocketAddress remote = (InetSocketAddress)socketClient.getRemoteSocketAddress();
+    	String debug = "";
+        debug = "Thread : " + Thread.currentThread().getName() + ". ";
+        debug += "Demande de l'adresse : " + remote.getAddress().getHostAddress() +".";
+        debug += " Sur le port : " + remote.getPort() + ".\n";
+        System.out.println("\n" + debug);
+		
+		while(!socketClient.isClosed()){ 
+			String message = "";
+			try {
+				message = reader.readLine();
+			} catch(IOException e) {
+				System.err.println("Erreur lors de la lecture : " + e);
+				sendError("Erreur lors de la lecture de la requete");
+				System.exit(0);
+			}
+			JSONObject json = null;
+			try{
+				json = new JSONObject(message);
+			}catch(Exception e){
+				sendError("Les données envoyées ne sont pas au format json");
+
+			}
+			
+			if( json.has("action") ){
+				switch(json.getInt("action")){
+					case 1: login(json); break;
+					case 2:	creerCompte(json); break;
+					case 3: creerActivite(json); break;
+					case 4: ReceptionActivite(json); break;
+					case 5: FinActivite(json); break;
+					case 8 :
+						try {
+							System.out.println("fermeture du thread : "+ Thread.currentThread().getName());
+							reader.close();
+							writer.close();
+							socketClient.close();
+						} catch(IOException e) {
+							System.err.println("Erreur lors de la fermeture des flux et des sockets : " + e);
+						}
+						break;
+					default: sendError("Cette action n'existe pas"); break;
+				}
+			}
+			else{
+				sendError("Aucune action demandé");
 			}
 		}
-		 else{
-			sendError("Aucune action demandé");
-		}
-    	
-    	
 
-        // Fermeture des flux et des sockets
-        try {
-            reader.close();
-            writer.close();
-            socketClient.close();
-        } catch(IOException e) {
-            System.err.println("Erreur lors de la fermeture des flux et des sockets : " + e);
-            System.exit(0);
-        }
     }
 
 /**
@@ -453,8 +461,8 @@ private static JSONObject readUser(String loginU) throws Exception{
 
 
 	public static void SendReponse(String data) {
-		writer.write(data);
-		writer.flush();
+		System.out.println("data :" + data);
+		writer.println(data);
 	}
 
     

@@ -8,7 +8,7 @@ import java.net.Socket;
 
 public class ServeurTCPMulti {
 
-    public static final int portEcoute = 2025;
+    public static final int portEcoute = 2001;
 
     public static void main(String[] args) {
         // Création de la socket serveur

@@ -18,7 +18,7 @@ import java.io.BufferedWriter;
 
 public class ClientTCP {
 
-	public final int portEcoute = 5001;
+	public final int portEcoute = 2001;
 	public final int TIME_OUT_DELAY = 1000;
 	public final int AMOUNT_TO_SEND_GPSDATA = 5;
 
