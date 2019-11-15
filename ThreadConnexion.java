@@ -1,4 +1,4 @@
-package ServeurTCP;
+package com.test;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -18,11 +18,6 @@ import java.util.Scanner;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- * Classe correspondant au thread associe à chaque connexion d'un client.
- * @author Cyril Rabat
- * @version 18/10/2017
- */
 public class ThreadConnexion extends Thread {
 
     private BufferedReader reader;

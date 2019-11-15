@@ -1,4 +1,4 @@
-package ClientTCP;
+package com.test;
 
 
 
@@ -7,7 +7,7 @@ import java.util.Scanner;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ClientTCP {
+public class AppTCP {
 	private static String getKey(JSONObject json, String key){
 		return json.has(key) ? json.optString(key) : "";
 	}
@@ -34,7 +34,7 @@ public class ClientTCP {
 
 		Scanner saisieUtilisateur = new Scanner(System.in);
 		
-		Client client = new Client();
+		ClientTCP client = new ClientTCP();
 		
 		int recupOption = 0;
 		String resultRequest = "";

@@ -1,4 +1,5 @@
-package ClientUDP;
+package com.test;
+
 
 
 import java.util.*;
@@ -6,23 +7,26 @@ import java.util.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.net.UnknownHostException;
+import java.io.OutputStreamWriter;
+import java.io.BufferedWriter;
 
-public class Client {
+public class ClientTCP {
 
-	public final int portEcoute = 2345;
+	public final int portEcoute = 5001;
 	public final int TIME_OUT_DELAY = 1000;
 	public final int AMOUNT_TO_SEND_GPSDATA = 5;
 
 	private String login;
 	private String activity;
-	private DatagramSocket socket = null;
+	private Socket socket = null;
+	BufferedReader reader = null;
+    PrintWriter writer = null;
 	private List<GPSdata> GPSdataList = new ArrayList<GPSdata>();
 
 	public String getLogin() {
@@ -45,14 +49,28 @@ public class Client {
 		this.activity = "";
 	}
 
-	public Client() {
+	public ClientTCP() {
 		try {
-			this.socket = new DatagramSocket();
-		} catch (SocketException e) {
-			System.out.println("Erreur lors de la création de la socket : " + e);
-			System.exit(-1);
-		}
-	}
+            socket = new Socket("localhost", portEcoute);
+        } catch(UnknownHostException e) {
+            System.err.println("Erreur sur l'hôte : " + e);
+            System.exit(0);
+        } catch(IOException e) {
+            System.err.println("Création de la socket impossible : " + e);
+            System.exit(0);
+        }
+		try {
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
+        } catch(IOException e) {
+            System.err.println("Association des flux impossible : " + e);
+            System.exit(0);
+        }
+   
+            
+        }
+
+	
 
 	public String seConnecter(Scanner saisieUtilisateur) {
 
@@ -70,6 +88,30 @@ public class Client {
 		}
 
 	}
+	/*public void test() {
+		
+	
+		
+		
+		String message = "{\"action\":\"1\",\"creationDate\":\"Thu Nov 14 11:45:26 CET 2019\"}";
+		writer.println(message);
+		//writer.flush();
+		
+		 String messageR = "";
+	        try {
+	            messageR = reader.readLine();
+	        } catch(IOException e) {
+	            System.err.println("Erreur lors de la lecture : " + e);
+	            
+	        }
+	    	//JSONObject json = new JSONObject(message);
+	        System.out.print(messageR);
+	        return;
+		
+		
+		
+		
+	}*/
 
 	public String creerCompte(Scanner saisieUtilisateur) {
 
@@ -171,20 +213,15 @@ public class Client {
 	public void sendUDP(String data) throws Exception {
 		
 		System.out.print("\nEnvoie...");
-		
-		try {
-            
-		    byte[] tampon = data.getBytes();
-		    DatagramPacket dataRequest = new DatagramPacket(tampon, tampon.length, InetAddress.getByName(null), portEcoute);
-			this.socket.send(dataRequest); 
-			System.out.println("réussi.");
-		} catch(UnknownHostException e) {
-            System.out.println("Erreur lors de la création du message : " + e);
-            throw e;
-		} catch(IOException e) {
-            System.out.println("Erreur lors de l'envoi du message : " + e);
-            throw e;
-		}
+        
+        try {
+            writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
+        } catch(IOException e) {
+            System.err.println("Association des flux impossible : " + e);
+            System.exit(0);
+        }
+        writer.println(data);
+        
 	}
 	
 	/**
@@ -195,24 +232,24 @@ public class Client {
 	 */
 	public String sendUDPWithResponse(String data) throws Exception{
 		
+		
 		try{
 			sendUDP(data);
+			
 		} catch(Exception e){
 			throw new Exception("La fonction sendUDP à échoué dans sendUDPWithResponse: " + e.getMessage());
 		}
-		
-        byte[] tampon = new byte[800];
-        DatagramPacket response = new DatagramPacket(tampon, tampon.length);
+	 
+        String message = "";
         try {
-			this.socket.setSoTimeout(TIME_OUT_DELAY);
-			this.socket.receive(response);
-		} catch (SocketTimeoutException e) {
-			throw new Exception("Serveur Timeout !");
-		} catch (IOException e) {
-			throw new Exception(e.toString());
-		}
+            message = reader.readLine();
+        } catch(IOException e) {
+            System.err.println("Erreur lors de la lecture : " + e);
+            System.exit(0);
+        }
+    	//JSONObject json = new JSONObject(message);
         
-        return new String(response.getData(), 0, response.getLength());
+        return new String(message);
 	}
 	
 	public void displayMenu(String r){
@@ -231,7 +268,21 @@ public class Client {
 	
 	
 	public void aurevoir() {
-
+		String data = "{\"activity\":\"iojff\",\"action\":8,\"login\":\"toto\"}";
+		try {
+			sendUDP(data);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+            reader.close();
+            writer.close();
+            socket.close();
+        } catch(IOException e) {
+            System.err.println("Erreur lors de la fermeture des flux et des sockets : " + e);
+            System.exit(0);
+        }
 		System.out.println(
 				"-~~~~~.....~~~-~~~......^^._=*i;;++::::~.~-;+====+i*eeo*=i=*o*i**e!eee!!ee!!!!!eoiiioooooooooooo****\n" + 
 				"-----~~~.~~~~~~~~~........;=i*i+++=:_:_~.~-;++=io*eeeeeoiii*o*i**eeee!???eee!!??*iiiioooooooooooo***\n" + 
